@@ -12,15 +12,16 @@ from app.ai_engine.preprocess import (
     lemmatize,
 )
 
-from app.ai_engine.keyword_extractor import extract_keywords
-from app.ai_engine.mcq_generator import generate_mcqs
-
 
 def home(request):
 
     mcqs = []
 
     if request.method == "POST":
+
+        # Heavy modules ko sirf POST request par import karo
+        from app.ai_engine.keyword_extractor import extract_keywords
+        from app.ai_engine.mcq_generator import generate_mcqs
 
         pdf = request.FILES.get("pdf_file")
         difficulty = request.POST.get("difficulty")
@@ -63,9 +64,13 @@ def home(request):
             # Save generated MCQs in session
             request.session["mcqs"] = mcqs
 
-    return render(request, "home.html", {
-        "mcqs": mcqs
-    })
+    return render(
+        request,
+        "home.html",
+        {
+            "mcqs": mcqs
+        }
+    )
 
 
 def download(request):
@@ -75,8 +80,13 @@ def download(request):
     if not mcqs:
         return HttpResponse("No MCQs Generated Yet!")
 
-    response = HttpResponse(content_type="application/pdf")
-    response["Content-Disposition"] = 'attachment; filename="Generated_MCQs.pdf"'
+    response = HttpResponse(
+        content_type="application/pdf"
+    )
+
+    response["Content-Disposition"] = (
+        'attachment; filename="Generated_MCQs.pdf"'
+    )
 
     pdf = canvas.Canvas(response)
 
@@ -84,6 +94,7 @@ def download(request):
     pdf.drawString(170, 800, "AI Generated MCQs")
 
     y = 760
+
     pdf.setFont("Helvetica", 12)
 
     for i, mcq in enumerate(mcqs, start=1):
@@ -98,19 +109,39 @@ def download(request):
         while len(options) < 4:
             options.append("")
 
-        pdf.drawString(40, y, f"{i}. {mcq['question']}")
+        pdf.drawString(
+            40,
+            y,
+            f"{i}. {mcq['question']}"
+        )
         y -= 20
 
-        pdf.drawString(60, y, f"A. {options[0]}")
+        pdf.drawString(
+            60,
+            y,
+            f"A. {options[0]}"
+        )
         y -= 20
 
-        pdf.drawString(60, y, f"B. {options[1]}")
+        pdf.drawString(
+            60,
+            y,
+            f"B. {options[1]}"
+        )
         y -= 20
 
-        pdf.drawString(60, y, f"C. {options[2]}")
+        pdf.drawString(
+            60,
+            y,
+            f"C. {options[2]}"
+        )
         y -= 20
 
-        pdf.drawString(60, y, f"D. {options[3]}")
+        pdf.drawString(
+            60,
+            y,
+            f"D. {options[3]}"
+        )
         y -= 40
 
     pdf.save()
