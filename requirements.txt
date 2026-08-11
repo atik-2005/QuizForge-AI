@@ -6,3 +6,4 @@ keybert
 sentence-transformers
 scikit-learn
 reportlab
+whitenoise
