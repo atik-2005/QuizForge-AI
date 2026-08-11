@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizForge AI</title>
+
+    <style>
+
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:'Poppins',sans-serif;
+        }
+
+        body{
+            background:linear-gradient(135deg,#312e81,#4f46e5,#0ea5e9);
+            background-size:300% 300%;
+            animation:bgMove 10s ease infinite;
+            min-height:100vh;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            padding:40px;
+        }
+
+        @keyframes bgMove{
+            0%{background-position:0% 50%;}
+            50%{background-position:100% 50%;}
+            100%{background-position:0% 50%;}
+        }
+
+        .container{
+            width:900px;
+            background:rgba(255,255,255,.94);
+            backdrop-filter:blur(18px);
+            border-radius:24px;
+            padding:40px;
+            box-shadow:
+            0 25px 60px rgba(0,0,0,.25),
+            0 0 30px rgba(79,70,229,.15);
+            transition:.35s;
+        }
+
+        .container:hover{
+            transform:translateY(-4px);
+        }
+
+        h1{
+            text-align:center;
+            font-size:42px;
+            color:#312e81;
+            margin-bottom:8px;
+            font-weight:700;
+        }
+
+        h1::after{
+            content:"";
+            display:block;
+            width:90px;
+            height:4px;
+            margin:12px auto;
+            border-radius:20px;
+            background:linear-gradient(to right,#2563eb,#7c3aed);
+        }
+
+        label{
+            display:block;
+            margin-top:22px;
+            margin-bottom:8px;
+            font-weight:600;
+            color:#334155;
+        }
+
+        input[type=file],
+        select{
+            width:100%;
+            padding:14px;
+            border:2px dashed #a5b4fc;
+            border-radius:14px;
+            background:#f8fafc;
+            font-size:15px;
+            transition:.3s;
+        }
+
+        input[type=file]:hover,
+        select:hover{
+            border-color:#4f46e5;
+            background:#eef2ff;
+        }
+
+        input[type=file]:focus,
+        select:focus{
+            outline:none;
+            border-color:#2563eb;
+            box-shadow:0 0 12px rgba(37,99,235,.2);
+        }
+
+        button{
+            width:100%;
+            padding:15px;
+            margin-top:22px;
+            border:none;
+            border-radius:14px;
+            font-size:17px;
+            font-weight:600;
+            cursor:pointer;
+            color:white;
+            background:linear-gradient(135deg,#2563eb,#7c3aed);
+            transition:.35s;
+            box-shadow:0 12px 24px rgba(79,70,229,.25);
+        }
+
+        button:hover{
+            transform:translateY(-3px);
+            box-shadow:0 18px 30px rgba(79,70,229,.4);
+        }
+
+        button:active{
+            transform:scale(.98);
+        }
+
+        hr{
+            border:none;
+            height:2px;
+            background:linear-gradient(to right,#4f46e5,#06b6d4);
+            margin:35px 0;
+        }
+
+        h2{
+            text-align:center;
+            margin-bottom:25px;
+            color:#312e81;
+            font-size:28px;
+        }
+
+        .mcq{
+            background:white;
+            border-radius:18px;
+            padding:22px;
+            margin-bottom:22px;
+            border-left:6px solid #4f46e5;
+            box-shadow:0 10px 25px rgba(0,0,0,.08);
+            transition:.35s;
+        }
+
+        .mcq:hover{
+            transform:translateY(-5px);
+            box-shadow:0 18px 35px rgba(0,0,0,.15);
+        }
+
+        .mcq h3{
+            color:#2563eb;
+            margin-bottom:12px;
+        }
+
+        .mcq p{
+            font-size:17px;
+            color:#1e293b;
+            margin-bottom:16px;
+            line-height:1.7;
+        }
+
+        .option{
+            margin:10px 0;
+            padding:13px 16px;
+            border-radius:12px;
+            background:#f8fafc;
+            border:1px solid #dbeafe;
+            transition:.3s;
+        }
+
+        .option:hover{
+            background:#dbeafe;
+            border-color:#2563eb;
+            padding-left:22px;
+        }
+
+        .answer{
+            display:none;
+        }
+
+        ::-webkit-scrollbar{
+            width:10px;
+        }
+
+        ::-webkit-scrollbar-thumb{
+            background:#6366f1;
+            border-radius:20px;
+        }
+
+        ::-webkit-scrollbar-track{
+            background:#e2e8f0;
+        }
+        .hero{
+            text-align:center;
+            margin-bottom:35px;
+        }
+
+        .logo{
+            font-size:48px;
+            font-weight:800;
+            color:#1e293b;
+            letter-spacing:1px;
+            position:relative;
+            display:inline-block;
+        }
+
+        .logo span{
+            background:linear-gradient(135deg,#2563eb,#7c3aed);
+            -webkit-background-clip:text;
+            -webkit-text-fill-color:transparent;
+        }
+
+        .logo::after{
+            content:"";
+            position:absolute;
+            left:50%;
+            transform:translateX(-50%);
+            bottom:-12px;
+            width:140px;
+            height:5px;
+            border-radius:20px;
+            background:linear-gradient(90deg,#2563eb,#7c3aed,#06b6d4);
+            box-shadow:0 0 15px rgba(79,70,229,.4);
+        }
+
+        .tagline{
+            margin-top:28px;
+            font-size:16px;
+            color:#64748b;
+            font-weight:500;
+            letter-spacing:.4px;
+        }
+
+        </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="hero">
+
+        <h1 class="logo">
+            QuizForge <span>AI</span>
+        </h1>
+
+        <p class="tagline">
+            Transform Any PDF into Smart Multiple Choice Questions
+        </p>
+
+    </div>
+
+    <form method="POST" enctype="multipart/form-data">
+
+        {% csrf_token %}
+
+        <label>Upload PDF</label>
+
+        <input type="file" name="pdf_file" accept=".pdf" required>
+
+        <label>Select Difficulty</label>
+
+        <select name="difficulty">
+            <option>Low</option>
+            <option>Medium</option>
+            <option>High</option>
+        </select>
+
+        <label>Number of MCQs</label>
+
+        <select name="mcq_count">
+            <option>10</option>
+            <option>20</option>
+            <option>30</option>
+            <option>50</option>
+        </select>
+
+        <button type="submit">
+            Generate MCQs
+        </button>
+
+    </form>
+    <form action="{% url 'download' %}" method="POST">
+        {% csrf_token %}
+        <button type="submit">Download PDF</button>
+    </form>
+
+    {% if mcqs %}
+
+    <hr>
+
+    <h2>Generated MCQs</h2>
+
+    {% for mcq in mcqs %}
+
+    <div class="mcq">
+
+        <h3>Question {{ forloop.counter }}</h3>
+
+        <p>{{ mcq.question }}</p>
+
+        <div class="option">A. {{ mcq.options.0 }}</div>
+        <div class="option">B. {{ mcq.options.1 }}</div>
+        <div class="option">C. {{ mcq.options.2 }}</div>
+        <div class="option">D. {{ mcq.options.3 }}</div>
+
+        <!--<div class="answer">
+            Answer : {{ mcq.answer }}
+        </div> -->
+
+    </div>
+
+    {% endfor %}
+
+    {% endif %}
+
+</div>
+
+</body>
+</html>
