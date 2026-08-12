@@ -7,3 +7,5 @@ sentence-transformers
 scikit-learn
 reportlab
 whitenoise
+transformers
+torch
