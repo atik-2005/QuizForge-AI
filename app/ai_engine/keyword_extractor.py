@@ -3,12 +3,11 @@ import re
 
 
 def extract_keywords(text, top_n=20):
-    """
-    Lightweight keyword extraction.
-    No KeyBERT, PyTorch, or Transformer model required.
-    """
 
-    words = re.findall(r"\b[a-zA-Z][a-zA-Z0-9-]{2,}\b", text.lower())
+    words = re.findall(
+        r"\b[a-zA-Z][a-zA-Z0-9-]{2,}\b",
+        text.lower()
+    )
 
     stop_words = {
         "the", "and", "for", "are", "with", "that", "this",

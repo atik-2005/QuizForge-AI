@@ -2,11 +2,6 @@ Django>=5.2,<6.0
 gunicorn
 PyMuPDF
 nltk
-keybert
-sentence-transformers
 scikit-learn
 reportlab
 whitenoise
-transformers
-torch
-keybert
