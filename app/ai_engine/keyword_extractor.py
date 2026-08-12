@@ -1,7 +1,6 @@
 from collections import Counter
 import re
 
-
 STOP_WORDS = {
     "the", "is", "are", "was", "were", "a", "an", "and", "or",
     "of", "to", "in", "on", "for", "with", "by", "from", "as",
@@ -11,7 +10,6 @@ STOP_WORDS = {
     "there", "they", "them", "we", "you", "your", "he", "she",
     "his", "her"
 }
-
 
 def extract_keywords(text, top_n=20):
     words = re.findall(r"\b[a-zA-Z]{3,}\b", text.lower())
