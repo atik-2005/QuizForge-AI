@@ -3,7 +3,6 @@ import re
 
 
 def extract_keywords(text, top_n=20):
-
     words = re.findall(
         r"\b[a-zA-Z][a-zA-Z0-9-]{2,}\b",
         text.lower()
