@@ -55,11 +55,15 @@ def home(request):
                 filtered_words = remove_stopwords(words)
                 lemmatize(filtered_words)
 
-                keywords = extract_keywords(cleaned_text)
+                requested_count = int(mcq_count)
+                keywords = extract_keywords(
+                    cleaned_text,
+                    top_n=max(10, requested_count * 2),
+                )
                 generated = generate_mcqs(
                     sentences,
                     keywords,
-                    int(mcq_count),
+                    requested_count,
                     difficulty,
                     excluded_questions=previous_questions,
                 )

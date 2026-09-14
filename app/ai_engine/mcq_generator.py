@@ -27,10 +27,15 @@ def generate_mcqs(
     random.shuffle(keywords)
 
     candidates = []
+    seen_questions = set()
     for sentence in sentences:
         for keyword in keywords:
             if keyword.lower() in sentence.lower():
                 question = sentence.replace(keyword, "_____")
+                if question in seen_questions:
+                    continue
+                seen_questions.add(question)
+
                 distractors = [k for k in keywords if k != keyword]
                 random.shuffle(distractors)
                 options = [keyword]
@@ -46,7 +51,6 @@ def generate_mcqs(
                     "answer": keyword,
                     "answer_letter": "ABCD"[answer_index],
                 })
-                break
 
     random.shuffle(candidates)
 
