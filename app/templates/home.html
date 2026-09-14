@@ -6,7 +6,6 @@
     <title>QuizForge AI</title>
 
     <style>
-
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
         *{
@@ -39,9 +38,7 @@
             backdrop-filter:blur(18px);
             border-radius:24px;
             padding:40px;
-            box-shadow:
-            0 25px 60px rgba(0,0,0,.25),
-            0 0 30px rgba(79,70,229,.15);
+            box-shadow:0 25px 60px rgba(0,0,0,.25), 0 0 30px rgba(79,70,229,.15);
             transition:.35s;
         }
 
@@ -179,22 +176,16 @@
             padding-left:22px;
         }
 
-        .answer{
-            display:none;
+        .error{
+            color:#b91c1c;
+            background:#fee2e2;
+            border:1px solid #fecaca;
+            padding:12px 14px;
+            border-radius:10px;
+            margin-top:18px;
+            font-weight:600;
         }
 
-        ::-webkit-scrollbar{
-            width:10px;
-        }
-
-        ::-webkit-scrollbar-thumb{
-            background:#6366f1;
-            border-radius:20px;
-        }
-
-        ::-webkit-scrollbar-track{
-            background:#e2e8f0;
-        }
         .hero{
             text-align:center;
             margin-bottom:35px;
@@ -235,9 +226,7 @@
             font-weight:500;
             letter-spacing:.4px;
         }
-
-        </style>
-
+    </style>
 </head>
 
 <body>
@@ -245,79 +234,65 @@
 <div class="container">
 
     <div class="hero">
-
-        <h1 class="logo">
-            QuizForge <span>AI</span>
-        </h1>
-
-        <p class="tagline">
-            Transform Any PDF into Smart Multiple Choice Questions
-        </p>
-
+        <h1 class="logo">QuizForge <span>AI</span></h1>
+        <p class="tagline">Transform Any PDF into Smart Multiple Choice Questions</p>
     </div>
 
     <form method="POST" enctype="multipart/form-data">
-
         {% csrf_token %}
 
         <label>Upload PDF</label>
-
         <input type="file" name="pdf_file" accept=".pdf" required>
 
         <label>Select Difficulty</label>
-
         <select name="difficulty">
             <option>Low</option>
-            <option>Medium</option>
+            <option selected>Medium</option>
             <option>High</option>
         </select>
 
         <label>Number of MCQs</label>
-
         <select name="mcq_count">
             <option>10</option>
             <option>20</option>
             <option>30</option>
+            <option>40</option>
             <option>50</option>
         </select>
 
-        <button type="submit">
-            Generate MCQs
-        </button>
-
+        <button type="submit">Generate MCQs</button>
     </form>
+
+    {% if error %}
+        <div class="error">{{ error }}</div>
+    {% endif %}
+
     <form action="{% url 'download' %}" method="POST">
         {% csrf_token %}
         <button type="submit">Download PDF</button>
     </form>
 
     {% if mcqs %}
+        <hr>
+        <h2>Generated MCQs</h2>
 
-    <hr>
+        {% for mcq in mcqs %}
+        <div class="mcq">
+            <h3>Question {{ forloop.counter }}</h3>
+            <p>{{ mcq.question }}</p>
 
-    <h2>Generated MCQs</h2>
+            {% if mcq.options %}
+                <div class="option">A. {{ mcq.options.0 }}</div>
+                <div class="option">B. {{ mcq.options.1 }}</div>
+                <div class="option">C. {{ mcq.options.2 }}</div>
+                <div class="option">D. {{ mcq.options.3 }}</div>
+            {% endif %}
 
-    {% for mcq in mcqs %}
-
-    <div class="mcq">
-
-        <h3>Question {{ forloop.counter }}</h3>
-
-        <p>{{ mcq.question }}</p>
-
-        <div class="option">A. {{ mcq.options.0 }}</div>
-        <div class="option">B. {{ mcq.options.1 }}</div>
-        <div class="option">C. {{ mcq.options.2 }}</div>
-        <div class="option">D. {{ mcq.options.3 }}</div>
-
-        <!--<div class="answer">
-            Answer : {{ mcq.answer }}
-        </div> -->
-
-    </div>
-
-    {% endfor %}
-
+            <p class="answer">
+                Answer: {{ mcq.answer_letter }}. {{ mcq.answer }}
+            </p>
+        </div>
+        {% endfor %}
     {% endif %}
 
 </div>

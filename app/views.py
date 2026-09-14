@@ -3,6 +3,7 @@ from django.core.files.storage import FileSystemStorage
 from django.http import HttpResponse
 from reportlab.pdfgen import canvas
 import fitz
+import logging
 
 from app.ai_engine.preprocess import (
     clean_text,
@@ -14,136 +15,109 @@ from app.ai_engine.preprocess import (
 
 
 def home(request):
-
     mcqs = []
+    error = None
 
     if request.method == "POST":
-
-        # Heavy modules ko sirf POST request par import karo
-        from app.ai_engine.keyword_extractor import extract_keywords
-        from app.ai_engine.mcq_generator import generate_mcqs
-
-        pdf = request.FILES.get("pdf_file")
-        difficulty = request.POST.get("difficulty")
-        mcq_count = request.POST.get("mcq_count")
-
-        if pdf:
-
-            fs = FileSystemStorage()
-            filename = fs.save(pdf.name, pdf)
-            file_path = fs.path(filename)
-
-            pdf_document = fitz.open(file_path)
-
-            extracted_text = ""
-
-            for page in pdf_document:
-                extracted_text += page.get_text()
-
-            pdf_document.close()
-
-            cleaned_text = clean_text(extracted_text)
-
-            sentences = sentence_split(cleaned_text)
-
-            words = word_split(cleaned_text)
-
-            filtered_words = remove_stopwords(words)
-
-            lemmatized_words = lemmatize(filtered_words)
-
-            keywords = extract_keywords(cleaned_text)
-
-            mcqs = generate_mcqs(
-                sentences,
-                keywords,
-                int(mcq_count),
-                difficulty
-            )
-
-            # Save generated MCQs in session
-            request.session["mcqs"] = mcqs
-
-    return render(
-        request,
-        "home.html",
-        {
-            "mcqs": mcqs
+        previous_mcqs = request.session.get("mcqs", [])
+        previous_questions = {
+            mcq.get("question")
+            for mcq in previous_mcqs
+            if isinstance(mcq, dict) and mcq.get("question")
         }
-    )
 
+        request.session["mcqs"] = []   # clear old MCQs before new generation
+        request.session.modified = True
 
+        try:
+            from app.ai_engine.keyword_extractor import extract_keywords
+            from app.ai_engine.mcq_generator import generate_mcqs
+
+            pdf = request.FILES.get("pdf_file")
+            difficulty = request.POST.get("difficulty", "Medium")
+            mcq_count = request.POST.get("mcq_count", "10")
+
+            if not pdf:
+                error = "Please upload a PDF file."
+            elif not pdf.name.lower().endswith(".pdf"):
+                error = "Only PDF files are allowed."
+            else:
+                fs = FileSystemStorage()
+                filename = fs.save(pdf.name, pdf)
+                file_path = fs.path(filename)
+
+                with fitz.open(file_path) as pdf_document:
+                    extracted_text = "".join(page.get_text() for page in pdf_document)
+
+                cleaned_text = clean_text(extracted_text)
+                sentences = sentence_split(cleaned_text)
+                words = word_split(cleaned_text)
+                filtered_words = remove_stopwords(words)
+                lemmatize(filtered_words)
+
+                keywords = extract_keywords(cleaned_text)
+                generated = generate_mcqs(
+                    sentences,
+                    keywords,
+                    int(mcq_count),
+                    difficulty,
+                    excluded_questions=previous_questions,
+                )
+
+                mcqs = generated or []
+                request.session["mcqs"] = mcqs
+                request.session.modified = True
+
+        except Exception:
+            logging.exception("MCQ generation failed")
+            error = "Something went wrong while generating MCQs."
+            mcqs = []
+            request.session["mcqs"] = []
+            request.session.modified = True
+
+    return render(request, "home.html", {"mcqs": mcqs, "error": error})
 def download(request):
-
     mcqs = request.session.get("mcqs")
 
     if not mcqs:
         return HttpResponse("No MCQs Generated Yet!")
 
-    response = HttpResponse(
-        content_type="application/pdf"
-    )
-
-    response["Content-Disposition"] = (
-        'attachment; filename="Generated_MCQs.pdf"'
-    )
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = 'attachment; filename="Generated_MCQs.pdf"'
 
     pdf = canvas.Canvas(response)
-
     pdf.setFont("Helvetica-Bold", 18)
     pdf.drawString(170, 800, "AI Generated MCQs")
 
     y = 760
-
     pdf.setFont("Helvetica", 12)
 
     for i, mcq in enumerate(mcqs, start=1):
-
         if y < 120:
             pdf.showPage()
             pdf.setFont("Helvetica", 12)
             y = 800
 
         options = mcq.get("options", [])
-
         while len(options) < 4:
             options.append("")
 
-        pdf.drawString(
-            40,
-            y,
-            f"{i}. {mcq['question']}"
-        )
+        pdf.drawString(40, y, f"{i}. {mcq['question']}")
         y -= 20
 
-        pdf.drawString(
-            60,
-            y,
-            f"A. {options[0]}"
-        )
+        pdf.drawString(60, y, f"A. {options[0]}")
         y -= 20
-
-        pdf.drawString(
-            60,
-            y,
-            f"B. {options[1]}"
-        )
+        pdf.drawString(60, y, f"B. {options[1]}")
         y -= 20
-
-        pdf.drawString(
-            60,
-            y,
-            f"C. {options[2]}"
-        )
+        pdf.drawString(60, y, f"C. {options[2]}")
         y -= 20
+        pdf.drawString(60, y, f"D. {options[3]}")
+        y -= 40
 
-        pdf.drawString(
-            60,
-            y,
-            f"D. {options[3]}"
-        )
+        answer_letter = mcq.get("answer_letter", "")
+        answer = mcq.get("answer", "")
+        pdf.drawString(60, y, f"Answer: {answer_letter}. {answer}")
         y -= 40
 
     pdf.save()
-
     return response
