@@ -1,4 +1,5 @@
 import random
+import re
 
 
 def generate_mcqs(
@@ -9,10 +10,11 @@ def generate_mcqs(
     excluded_questions=None,
 ):
     excluded_questions = excluded_questions or set()
+    requested_count = max(0, int(count))
 
     sentences = [
         s for s in sentences
-        if len(s.split()) > 6
+        if len(s.split()) >= 4
         and len(s.split()) < 40
         and "include" not in s.lower()
         and "printf" not in s.lower()
@@ -23,15 +25,27 @@ def generate_mcqs(
     # Shuffle the source material so repeated submissions do not always select
     # the same sentences and keywords in the same order.
     random.shuffle(sentences)
-    keywords = list(keywords)
+    keywords = list(dict.fromkeys(keywords))
+    fallback_keywords = []
+    for sentence in sentences:
+        for word in re.findall(r"\b[a-zA-Z]{4,}\b", sentence):
+            if word.lower() not in {keyword.lower() for keyword in keywords}:
+                fallback_keywords.append(word)
+    keywords.extend(dict.fromkeys(fallback_keywords))
     random.shuffle(keywords)
 
     candidates = []
     seen_questions = set()
     for sentence in sentences:
         for keyword in keywords:
-            if keyword.lower() in sentence.lower():
-                question = sentence.replace(keyword, "_____")
+            question = re.sub(
+                rf"\b{re.escape(keyword)}\b",
+                "_____",
+                sentence,
+                count=1,
+                flags=re.IGNORECASE,
+            )
+            if question != sentence:
                 if question in seen_questions:
                     continue
                 seen_questions.add(question)
@@ -65,4 +79,4 @@ def generate_mcqs(
         if mcq["question"] in excluded_questions
     ]
 
-    return (fresh_candidates + previous_candidates)[:int(count)]
+    return (fresh_candidates + previous_candidates)[:requested_count]

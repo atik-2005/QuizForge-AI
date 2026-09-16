@@ -69,6 +69,13 @@ def home(request):
                 )
 
                 mcqs = generated or []
+                if not mcqs:
+                    error = "No selectable text was found in this PDF. Please upload a text-based PDF."
+                elif len(mcqs) < requested_count:
+                    error = (
+                        f"This PDF only contains enough text for {len(mcqs)} unique MCQs "
+                        f"out of the {requested_count} requested."
+                    )
                 request.session["mcqs"] = mcqs
                 request.session.modified = True
 
